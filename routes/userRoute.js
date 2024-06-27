@@ -5,9 +5,9 @@ const userController = require('../controllers/userController');
 router.post('/submit', userController.handleFormSubmission);
 router.post('/login', userController.handleLogin);
 
-router.get('/get', userController.getMethod);
-router.patch('/patch', userController.patchMethod);
-router.delete('/delete', userController.deleteMethod);
-router.put('/put', userController.putMethod);
+router.get('/getMethod', userController.getMethod);
+router.patch('/patchMethod', userController.patchMethod);
+router.delete('/deleteMethod', userController.deleteMethod);
+router.put('/putMethod', userController.putMethod);
 
 module.exports = router;
