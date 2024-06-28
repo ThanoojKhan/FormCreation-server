@@ -1,87 +1,112 @@
-let user = null;
+const User = require('../models/userModel');
 
-const handleFormSubmission = (req, res) => {
+const handleFormSubmission = async (req, res) => {
     const { name, email, place, college, password, confirmPassword } = req.body;
 
     if (!name || !email || !place || !college || !password || password !== confirmPassword) {
         return res.status(400).json({ message: 'Invalid form data' });
     }
 
-    if (user && user.email === email) {
-        return res.status(400).json({ message: 'User already exists' });
+    try {
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        const user = await User.create({ name, email, place, college, password });
+
+        console.log('User:', user);
+
+        res.status(200).json({ message: 'Registration Successful', data: user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-
-    user = { name, email, place, college, password };
-
-    console.log('User:', user);
-
-    res.status(200).json({ message: 'Registration Succefull', data: user });
 };
 
-
-const handleLogin = (req, res) => {
+const handleLogin = async (req, res) => {
     const { email, password } = req.body;
 
-    console.log(req.body);
+    try {
+        const user = await User.findOne({ email });
 
-    if (user && user.email === email && user.password === password) {
-        res.status(200).json({ success: true, message: 'Login successful', user });
-    } else {
-        res.status(401).json({ success: false, message: 'Invalid email or password' });
+        if (user && user.password === password) {
+            res.status(200).json({ success: true, message: 'Login successful', user });
+        } else {
+            res.status(401).json({ success: false, message: 'Invalid email or password' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-const getMethod = (req, res) => {
-    if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+const getMethod = async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.query.email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User found', data: user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-
-    res.status(200).json({ message: 'User found', data: user });
 };
 
-const patchMethod = (req, res) => {
-    const { name, email, place, college, password } = req.body;
+const patchMethod = async (req, res) => {
+    const { email, ...updateData } = req.body;
 
-    if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+    try {
+        const user = await User.findOneAndUpdate({ email }, updateData, { new: true });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User data updated successfully', data: user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-
-    user = {
-        ...user,
-        name: name || user.name,
-        email: email || user.email,
-        place: place || user.place,
-        college: college || user.college,
-        password: password || user.password
-    };
-
-    res.status(200).json({ message: 'User data updated successfully', data: user });
 };
 
-const putMethod = (req, res) => {
-    const { name, email, place, college, password } = req.body;
+const putMethod = async (req, res) => {
+    const { email, ...updateData } = req.body;
 
-    if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+    try {
+        const user = await User.findOneAndUpdate({ email }, updateData, { new: true });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User data updated successfully', data: user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-
-    user = {
-        ...user,
-        name: name || user.name,
-        email: email || user.email,
-        place: place || user.place,
-        college: college || user.college,
-        password: password || user.password
-    };
-
-    res.status(200).json({ message: 'User data updated successfully', data: user });
 };
 
-const deleteMethod = (req, res) => {
-    user = null;
-    res.status(200).json({ message: 'DELETE Method called. User Data Deleted', user });
-};
+const deleteMethod = async (req, res) => {
+    const { email } = req.body;
 
+    try {
+        const user = await User.findOneAndDelete({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User data deleted successfully', data: user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
 
 module.exports = {
     handleFormSubmission,
